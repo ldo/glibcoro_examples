@@ -401,29 +401,41 @@ for i in range(nr_sort_items - 1, 0, -1) :
 main_window = Gtk.Window()
 main_window.connect("destroy", stop)
 main_window.set_border_width(10)
-main_box = Gtk.VBox(False, 8)
-main_box.pack_start(Gtk.Label(algorithm_name), False, False, 0)
-items_box = Gtk.VBox(False, 8)
+main_grid = Gtk.Grid()
+main_grid.set_column_homogeneous(True)
+main_grid.set_row_spacing(8)
+algo_name_label = Gtk.Label(algorithm_name)
+main_grid.attach(algo_name_label, 0, 0, 1, 1)
+items_box = Gtk.Grid()
+items_box.set_column_homogeneous(True)
+items_box.set_row_spacing(8)
 items_box.connect("draw", draw_background)
-main_box.pack_start(items_box, False, False, 0)
+main_grid.attach_next_to(items_box, algo_name_label, Gtk.PositionType.BOTTOM, 1, 1)
 the_sort_display = []
+prev_widget = None
 for i in range(0, len(the_sort_items)) :
     the_widget = ItemWidget()
-    items_box.pack_start(the_widget.display_widget, False, False, 0)
+    if prev_widget != None :
+        items_box.attach_next_to(the_widget.display_widget, prev_widget.display_widget, Gtk.PositionType.BOTTOM, 1, 1)
+    else :
+        items_box.attach(the_widget.display_widget, 0, 0, 1, 1)
+    #end if
+    prev_widget = the_widget
     the_widget.set_value(the_sort_items[i])
     the_sort_display.append(the_widget)
 #end for
-labels_box = Gtk.HBox(False, 8)
+labels_box = Gtk.Grid()
+labels_box.set_property("column-spacing", 8)
 ordered_label = new_label()
 compare_count_label = new_label()
-labels_box.pack_start(ordered_label, False, False, 0)
-labels_box.pack_start(compare_count_label, False, False, 0)
 swap_count_label = new_label()
-labels_box.pack_start(swap_count_label, False, False, 0)
+labels_box.attach(ordered_label, 0, 0, 1, 1)
+labels_box.attach_next_to(compare_count_label, ordered_label, Gtk.PositionType.RIGHT, 1, 1)
+labels_box.attach_next_to(swap_count_label, compare_count_label, Gtk.PositionType.RIGHT, 1, 1)
+main_grid.attach_next_to(labels_box, items_box, Gtk.PositionType.BOTTOM, 1, 1)
 nr_compares = 0
 nr_swaps = 0
-main_box.pack_start(labels_box, False, False, 0)
-main_window.add(main_box)
+main_window.add(main_grid)
 main_window.show_all()
 ordered_label.set_text("")
 compare_count_label.set_text("")
