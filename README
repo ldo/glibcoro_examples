@@ -9,6 +9,10 @@ of various sorting algorithms. I first wrote it many years ago, as an
 exercise in learning GTK+. This version runs the sorting algorithm in a
 coroutine, concurrently with updating the user interface.
 
+`pipes` -- an example of non-thread-blocking I/O with pipes: the parent
+process waits for messages from child processes which can arrive in any
+order, processing them as soon as they arrive.
+
 `rocket_launch` -- this is a simple rocket-launch simulator, which prints
 out a sequence of text messages indicating the progress of a launch: a
 five-second countdown, followed by liftoff, followed by booster separation,
@@ -16,10 +20,10 @@ followed by achieving orbit. For added flavour, the program runs three
 launches, starting at different times and overlapping their sequences,
 to demonstrate event-loop-friendliness.
 
-The `rocket_launch` example can work with either the `glibcoro` event
-loop or the standard one provided by `asyncio`; this is controlled by
-the environment variable USE_GLIB that you set before invoking the
-script -- see the source for details.
+The `pipes` and `rocket_launch` examples can work with either the
+`glibcoro` event loop or the standard one provided by `asyncio`; this
+is controlled by the environment variable USE_GLIB that you set before
+invoking the script -- see the source for details.
 
 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>
 2017 September 30

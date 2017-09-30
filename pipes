@@ -1,0 +1,168 @@
+#!/usr/bin/python3
+#+
+# glibcoro example: nondeterministic interprocess communication
+# via pipes.
+#
+# Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
+# what you will.
+#-
+
+import sys
+import os
+import signal
+import random
+import asyncio
+import glibcoro
+
+use_glib = os.getenv("USE_GLIB", "")[:1].upper() not in ("N", "0")
+sys.stdout.write("use_glib: %s\n" % use_glib)
+if use_glib :
+    glibcoro.install()
+#end if
+loop = asyncio.get_event_loop()
+assert isinstance(loop, glibcoro.GLibEventLoop) == use_glib
+
+loop = asyncio.get_event_loop()
+
+#+
+# Useful stuff
+#-
+
+def fd_future(fd, timeout = None) :
+
+    fute = loop.create_future()
+    timeout_pending = None
+
+    def readable() :
+        loop.remove_reader(fd)
+        if timeout_pending != None :
+            timeout_pending.cancel()
+        #end if
+        if not fute.done() :
+            fute.set_result(True)
+        #end if
+    #end readable
+
+    def toolong() :
+        loop.remove_reader(fd)
+        if not fute.done() :
+            fute.set_result(False)
+        #end if
+    #end toolong
+
+#begin fd_future
+    loop.add_reader(fd, readable)
+    if timeout != None :
+        timeout_pending = loop.call_later(timeout, toolong)
+    #end if
+    return \
+        fute
+#end fd_future
+
+#+
+# Mainline
+#-
+
+nr_children = 5
+max_wait = 20 # seconds
+
+class ImTheChild(Exception) :
+
+    def __init__(self, to_parent) :
+        self.args = ("I am a child process!",)
+        self.to_parent = to_parent
+    #end __init__
+
+#end ImTheChild
+
+def spawn_child() :
+    from_child, to_parent = os.pipe()
+    child_pid = os.fork()
+    if child_pid != 0 :
+        # I’m the parent
+        os.close(to_parent)
+    else :
+        # I’m the child
+        os.close(from_child)
+        raise ImTheChild(to_parent)
+    #end if
+    return \
+        from_child, child_pid
+#end spawn_child
+
+to_parent = None
+try :
+    children = []
+    for i in range(nr_children) :
+        from_child, child_pid = spawn_child()
+        children.append \
+          (
+            {
+                "pid" : child_pid,
+                "from_child" : from_child,
+            }
+          )
+    #end for
+except ImTheChild as excp :
+    children = None
+    to_parent = excp.to_parent
+#end try
+
+if children != None :
+    # I’m the parent
+
+    async def main() :
+        for child in children :
+            child["await"] = fd_future(child["from_child"], timeout = max_wait)
+            child["done"] = False
+        #end for
+        sys.stdout.write("max wait = %.3fs\n" % max_wait)
+        start = loop.time()
+        while True :
+            await asyncio.wait \
+              (
+                list(child["await"] for child in children if not child["done"]),
+                return_when = asyncio.FIRST_COMPLETED
+              )
+            for child in children :
+                if not child["done"] and child["await"].done() :
+                    now = loop.time()
+                    sys.stdout.write("at %.3fs child %d " % (now - start, child["pid"]))
+                    if child["await"].result() :
+                        msg = os.read(child["from_child"], 80)
+                        sys.stdout.write("msg: %s\n" % repr(msg))
+                    else :
+                        sys.stdout.write("taking too long, killing\n")
+                        try :
+                            os.kill(child["pid"], signal.SIGKILL)
+                        except ProcessLookupError :
+                            pass # most likely race condition
+                        #end try
+                    #end if
+                    sys.stdout.flush()
+                    os.waitpid(child["pid"], 0)
+                    child["done"] = True
+                #end if
+            #end for
+            if all(child["done"] for child in children) :
+                break
+        #end while
+    #end main
+
+else :
+    # I’m a child
+    assert to_parent != None
+    random.seed() # otherwise all children wait for same time!
+
+    async def main() :
+        interval = random.random() * (max_wait * 1.5)
+        sys.stdout.write("child %d waiting for %.3fs\n" % (os.getpid(), interval))
+        await asyncio.sleep(interval)
+        os.write(to_parent, ("child %d says hello" % os.getpid()).encode())
+    #end main
+
+#end if
+
+loop.run_until_complete(main())
