@@ -4,7 +4,8 @@
 # “event-loop-agnostic” code: the code works equally well whether the
 # event loop comes from GLib (via glibcoro) or the standard
 # asyncio.BaseEventLoop. The choice is made based on the setting of the
-# USE_GLIB environment variable.
+# USE_GLIB environment variable: if not set, then GLib is used;
+# if set to “N” or “0”, then it falls back to asyncio.BaseEventLoop.
 #
 # Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0
@@ -17,7 +18,7 @@ import os
 import asyncio
 import glibcoro
 
-use_glib = os.getenv("USE_GLIB", "") != ""
+use_glib = os.getenv("USE_GLIB", "")[:1].upper() not in ("N", "0")
 sys.stdout.write("use_glib: %s\n" % use_glib)
 if use_glib :
     glibcoro.install()
