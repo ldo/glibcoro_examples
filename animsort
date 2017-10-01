@@ -41,7 +41,6 @@ import getopt
 
 glibcoro.install()
 loop = asyncio.get_event_loop()
-assert isinstance(loop, glibcoro.GLibEventLoop)
 
 #+
 # Misc useful stuff
