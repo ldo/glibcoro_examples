@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #+
-# An animated display of a sorting algorithm. This script takes the following options:
+# glibcoro example: an animated display of a sorting algorithm.
+# This script takes the following options:
 #
 # --algorithm=algorithm
 #     (required) specifies which sorting algorithm to demonstrate. Currently-valid
