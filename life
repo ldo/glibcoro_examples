@@ -255,21 +255,6 @@ class LifeDisplay :
         state_max_y = max(self.cursor_pos[1], state_max_y)
         hadj = self.area.get_hadjustment()
         vadj = self.area.get_vadjustment()
-        sys.stderr.write \
-          ( # debug
-                "recompute [%d .. %d] hor scroll %d .. %d .. %d, [%d .. %d] vert scroll %d .. %d .. %d\n"
-            %
-                (
-                    state_min_x, state_max_x,
-                    min(state_min_x * self.cell_size[0], hadj.get_value()),
-                    hadj.get_value(),
-                    max((state_max_x + 1) * self.cell_size[0], hadj.get_value()),
-                    state_min_y, state_max_y,
-                    min(state_min_y * self.cell_size[0], vadj.get_value()),
-                    vadj.get_value(),
-                    max((state_max_y + 1) * self.cell_size[0], vadj.get_value()),
-                )
-          )
         hadj.set_lower(min(state_min_x * self.cell_size[0], hadj.get_value()))
         hadj.set_upper(max((state_max_x + 1) * self.cell_size[0], hadj.get_value()))
         vadj.set_lower(min(state_min_y * self.cell_size[1], vadj.get_value()))
@@ -281,18 +266,6 @@ class LifeDisplay :
     def _value_changed(self, adj, vert) :
         hadj = self.area.get_hadjustment()
         vadj = self.area.get_vadjustment()
-        sys.stderr.write \
-          (
-                "value-changed %s scroll (%d, %d) => new origin (%d, %d)\n"
-            %
-                (
-                    ("hor", "vert")[vert],
-                    hadj.get_value(),
-                    vadj.get_value(),
-                    round(hadj.get_value() / self.cell_size[0]),
-                    round(vadj.get_value() / self.cell_size[1]),
-                )
-          ) # debug
         self.origin = \
             (
                 round(hadj.get_value() / self.cell_size[0]),
@@ -341,7 +314,6 @@ class LifeDisplay :
             raise TypeError("cursor coords must be integers")
         #end if
         visible_range = self.visible_cell_range
-        # sys.stderr.write("set cursor pos to (%d, %d), range = (%d, %d, %d, %d)\n" % ((i, j) + visible_range)) # debug
         self.inval_cell(*self.cursor_pos)
         self.cursor_pos = (i, j)
         self.inval_cell(*self.cursor_pos)
@@ -366,38 +338,14 @@ class LifeDisplay :
         #end if
         new_origin = (self.origin[0] + di, self.origin[1] + dj)
         if new_origin != self.origin :
-            sys.stderr.write \
-              (
-                "scroll from (%d, %d) to (%d, %d), area = (%d, %d)\n"
-                %
-                    (
-                        self.origin[0], self.origin[1],
-                        new_origin[0], new_origin[1],
-                        self.display.get_allocated_width(), self.display.get_allocated_height(),
-                    )
-              ) # debug
             self.origin = new_origin
             self.inval_all()
             hadj = self.display.get_hadjustment()
             vadj = self.display.get_vadjustment()
             hadj.handler_block(self.h_value_changed)
             vadj.handler_block(self.v_value_changed)
-            sys.stderr.write \
-              (
-                    " set scroll to (%d .. %d .. %d, %d .. %d .. %d)\n"
-                %
-                    (
-                        hadj.get_lower(),
-                        new_origin[0] * self.cell_size[0],
-                        hadj.get_upper(),
-                        vadj.get_lower(),
-                        new_origin[1] * self.cell_size[1],
-                        vadj.get_upper(),
-                    )
-              ) # debug
             hadj.set_value(new_origin[0] * self.cell_size[0])
             vadj.set_value(new_origin[1] * self.cell_size[1])
-            sys.stderr.write(" after set scroll: (%d, %d)\n" % (hadj.get_value(), vadj.get_value())) # debug
             hadj.handler_unblock(self.h_value_changed)
             vadj.handler_unblock(self.v_value_changed)
         #end if
@@ -406,7 +354,6 @@ class LifeDisplay :
     def _draw(self, display, ctx) :
         ctx.save()
         origin = self.cell_to_coords(*self.origin)
-        # sys.stderr.write("draw, origin = (%.3f, %.3f)\n" % origin) # debug
         ctx.translate(- origin[0], - origin[1])
         ctx.set_source_rgb(*colorsys.hsv_to_rgb(0.5, 0, 0.9))
         ctx.paint()
