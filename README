@@ -7,7 +7,15 @@ GLib/GTK+ event loop compatible with Python’s
 `animsort` -- this is a GUI-based app that produces a simple demonstration
 of various sorting algorithms. I first wrote it many years ago, as an
 exercise in learning GTK+. This version runs the sorting algorithm in a
-coroutine, concurrently with updating the user interface.
+coroutine, while the updating of the user interface happens concurrently.
+
+`life` -- a program which runs John Horton Conway’s well-known “Life”
+cellular-automata game. This version uses three separate coroutines:
+one for running the user interface in “edit” mode, where the user can
+make changes to the cell configuration, and two more that work
+concurrently in “run” mode, one for progressing the generations by
+applying the rules, while the other lets the user change the view of
+the board and stop the run.
 
 `pipes` -- an example of non-thread-blocking I/O with pipes: the parent
 process waits for messages from child processes which can arrive in any
@@ -22,8 +30,8 @@ to demonstrate event-loop-friendliness.
 
 The `pipes` and `rocket_launch` examples can work with either the
 `glibcoro` event loop or the standard one provided by `asyncio`; this
-is controlled by the environment variable USE_GLIB that you set before
+is controlled by the environment variable `USE_GLIB` that you set before
 invoking the script -- see the source for details.
 
 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>
-2017 September 30
+2017 October 4
