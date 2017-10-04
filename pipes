@@ -67,6 +67,7 @@ def fd_future(fd, timeout = None) :
 
 nr_children = 5
 max_wait = 20 # seconds
+max_delay = 1.5 * max_wait # let children sometimes wait too long
 
 class ImTheChild(Exception) :
 
@@ -157,7 +158,7 @@ else :
     random.seed() # otherwise all children wait for same time!
 
     async def main() :
-        interval = random.random() * (max_wait * 1.5)
+        interval = random.random() * max_delay
         sys.stdout.write("child %d waiting for %.3fs\n" % (os.getpid(), interval))
         await asyncio.sleep(interval)
         os.write(to_parent, ("child %d says hello" % os.getpid()).encode())
