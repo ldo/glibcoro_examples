@@ -392,6 +392,11 @@ class LifeDisplay :
         state_max_x, state_max_y = self.state.max()
         cells_across, cells_down = self.visible_cell_range[2:]
         self.set_cursor_pos((state_min_x + state_max_x) // 2, (state_min_y + state_max_y) // 2)
+        self.scroll \
+          (
+            state_min_x - self.origin[0],
+            state_min_y - self.origin[1]
+          )
     #end home
 
 #end LifeDisplay
