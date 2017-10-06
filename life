@@ -485,7 +485,7 @@ async def edit_mode() :
     " generations, or quit the program."
     state_display.running = False
     state_display.inval_all()
-    set_prompt("Editing: SPACE toggle, UP/DOWN/LEFT/RIGHT move, RETURN run, Q quit")
+    set_prompt("Editing: SPACE toggle, UP/DOWN/LEFT/RIGHT move, TAB step, RETURN run, Q quit")
     while True :
         set_info \
           (
@@ -509,6 +509,10 @@ async def edit_mode() :
             state[state_display.cursor_pos] = not state[state_display.cursor_pos]
             state_display.inval_cell(*state_display.cursor_pos)
             state_display.recompute_scroll_bounds()
+        elif key == Gdk.KEY_Tab :
+            state.step()
+            state_display.recompute_scroll_bounds()
+            state_display.inval_all()
         elif key == Gdk.KEY_Return :
             loop.create_task(run_mode())
             break
