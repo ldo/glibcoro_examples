@@ -355,8 +355,34 @@ class LifeDisplay :
         ctx.save()
         origin = self.cell_to_coords(*self.origin)
         ctx.translate(- origin[0], - origin[1])
+        state_min_x, state_min_y = self.state.min()
+        state_max_x, state_max_y = self.state.max()
         ctx.set_source_rgb(*colorsys.hsv_to_rgb(0.5, 0, 0.9))
         ctx.paint()
+        ctx.set_line_width(1)
+        ctx.set_source_rgb(*colorsys.hsv_to_rgb(0.5, 0.5, 0.9))
+        topleft_corner_cell = tuple(math.floor(x) for x in self.coords_to_cell(0, 0))
+        botright_corner_cell = \
+            tuple \
+              (
+                math.ceil(x) + 1
+                for x in
+                    self.coords_to_cell
+                      (
+                        self.area.get_allocated_width(),
+                        self.area.get_allocated_height()
+                      )
+              )
+        for x in range(topleft_corner_cell[0], botright_corner_cell[0]):
+            ctx.move_to(*self.cell_to_coords(x, topleft_corner_cell[1]))
+            ctx.line_to(*self.cell_to_coords(x, botright_corner_cell[1]))
+            ctx.stroke()
+        #end for
+        for y in range(topleft_corner_cell[1], botright_corner_cell[1]):
+            ctx.move_to(*self.cell_to_coords(topleft_corner_cell[0], y))
+            ctx.line_to(*self.cell_to_coords(botright_corner_cell[0], y))
+            ctx.stroke()
+        #end for
         if not self.running :
             ctx.set_source_rgb(*colorsys.hsv_to_rgb(0.6, 0.5, 0.9))
             ctx.rectangle \
@@ -366,8 +392,6 @@ class LifeDisplay :
             ctx.fill()
         #end if
         ctx.set_source_rgb(*colorsys.hsv_to_rgb(0.9, 0.5, 0.7))
-        state_min_x, state_min_y = self.state.min()
-        state_max_x, state_max_y = self.state.max()
         for x in range(state_min_x, state_max_x + 1) :
             for y in range(state_min_y, state_max_y + 1) :
                 if state[x, y] :
