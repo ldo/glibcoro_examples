@@ -351,6 +351,10 @@ class LifeDisplay :
         #end if
     #end scroll
 
+    def set_scroll(self, i, j) :
+        self.scroll(i - self.origin[0], j - self.origin[1])
+    #end set_scroll
+
     def _draw(self, display, ctx) :
         ctx.save()
         origin = self.cell_to_coords(*self.origin)
@@ -416,10 +420,10 @@ class LifeDisplay :
         state_max_x, state_max_y = self.state.max()
         cells_across, cells_down = self.visible_cell_range[2:]
         self.set_cursor_pos((state_min_x + state_max_x) // 2, (state_min_y + state_max_y) // 2)
-        self.scroll \
+        self.set_scroll \
           (
-            state_min_x - self.origin[0],
-            state_min_y - self.origin[1]
+            self.cursor_pos[0] - cells_across // 2,
+            self.cursor_pos[1] - cells_down // 2
           )
     #end home
 
