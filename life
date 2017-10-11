@@ -495,19 +495,6 @@ def set_info(msg) :
     info_area.push(0, msg)
 #end set_info
 
-async def generate() :
-    "runs the generations."
-    gen_count = 0
-    while True :
-        state.step()
-        state_display.recompute_scroll_bounds()
-        state_display.inval_all()
-        gen_count += 1
-        set_info("Gen %d pop %d" % (gen_count, len(state)))
-        await asyncio.sleep(step_interval)
-    #end while
-#end generate
-
 async def edit_mode() :
     "lets the user make changes to the board layout, run the" \
     " generations, or quit the program."
@@ -577,6 +564,19 @@ async def run_mode() :
         #end if
     #end while
 #end run_mode
+
+async def generate() :
+    "runs the generations."
+    gen_count = 0
+    while True :
+        state.step()
+        state_display.recompute_scroll_bounds()
+        state_display.inval_all()
+        gen_count += 1
+        set_info("Gen %d pop %d" % (gen_count, len(state)))
+        await asyncio.sleep(step_interval)
+    #end while
+#end generate
 
 def setup_main_window() :
 
