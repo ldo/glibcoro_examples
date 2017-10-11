@@ -477,11 +477,9 @@ step_interval = 0.5
 def stop(_) :
     "installed as callback, e.g. when main window’s close box is clicked," \
     " to stop program."
-    global generate_task
-    if generate_task != None :
-        generate_task.cancel()
-        generate_task = None
-    #end if
+    for task in asyncio.Task.all_tasks() :
+        task.cancel()
+    #end for
     loop.stop()
 #end stop
 
