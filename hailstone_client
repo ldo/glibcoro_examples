@@ -6,6 +6,9 @@
 # send it that integer, and print out the returned “hailstone”
 # sequence <http://en.wikipedia.org/wiki/Collatz_conjecture>.
 #
+# Note how all sockets are set nonblocking, in order to be as
+# event-loop-friendly as possible.
+#
 # Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0
 # <https://creativecommons.org/publicdomain/zero/1.0/>; do with it

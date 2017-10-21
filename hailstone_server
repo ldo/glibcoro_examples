@@ -6,6 +6,9 @@
 # sequence <http://en.wikipedia.org/wiki/Collatz_conjecture> starting
 # with that integer.
 #
+# Note how all sockets are set nonblocking, in order to be as
+# event-loop-friendly as possible.
+#
 # The accompanying hailstone_client script will work as a client
 # with this server.
 #
