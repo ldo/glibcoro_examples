@@ -1,0 +1,171 @@
+#!/usr/bin/python3
+#+
+# glibcoro example: hailstorm sequence generator. This process listens
+# for connections on a TCP/IP port, receives a starting positive
+# integer on each connection, and then sends back the “hailstorm”
+# sequence <http://en.wikipedia.org/wiki/Collatz_conjecture> starting
+# with that integer.
+#
+# The accompanying hailstorm_client script will work as a client
+# with this server.
+#
+# Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
+# what you will.
+#-
+
+import sys
+import os
+import socket
+import errno
+import random
+import asyncio
+import glibcoro
+import getopt
+
+use_glib = os.getenv("USE_GLIB", "")[:1].upper() not in ("N", "0")
+sys.stdout.write("use_glib: %s\n" % use_glib)
+if use_glib :
+    glibcoro.install()
+#end if
+loop = asyncio.get_event_loop()
+assert isinstance(loop, glibcoro.GLibEventLoop) == use_glib
+
+#+
+# Useful stuff
+#-
+
+def until_readable(fd) :
+    "coroutine: can be awaited to block until there is something to read from fd."
+
+    waitfor = loop.create_future()
+
+    def can_read() :
+        loop.remove_reader(fd)
+        waitfor.set_result(None)
+    #end can_read
+
+#begin until_readable
+    loop.add_reader(fd, can_read)
+    return \
+        waitfor
+#end until_readable
+
+def until_writable(fd) :
+    "coroutine: can be awaited to block until something can be written to fd."
+
+    waitfor = loop.create_future()
+
+    def can_write() :
+        loop.remove_writer(fd)
+        waitfor.set_result(None)
+    #end can_writer
+
+#begin until_writable
+    loop.add_writer(fd, can_write)
+    return \
+        waitfor
+#end until_writable
+
+#+
+# Mainline
+#-
+
+listen_port = 2323
+use_ipv6 = False
+step_delay = 1
+nr_delay_incrs = 10
+
+async def responder(conn, addr) :
+    "spawned for each incoming connection to respond to the request."
+    use_delay = random.randrange(nr_delay_incrs) * step_delay / nr_delay_incrs
+    request = b""
+    while True :
+        await until_readable(conn)
+        seg = conn.recv(80)
+        request += seg
+        if b"\n" in seg :
+            break
+    #end while
+    n = int(request.strip().decode())
+    assert n > 1
+    while True :
+        await asyncio.sleep(use_delay) # just to simulate a time-consuming task
+        await until_writable(conn)
+        conn.send(("%d\n" % n).encode())
+        if n == 1 :
+            break
+        if n % 2 != 0 :
+            n = 3 * n + 1
+        else :
+            n //= 2
+        #end if
+    #end while
+    conn.close()
+    sys.stdout.write("close conn %s\n" % repr(addr))
+#end responder
+
+async def listener() :
+    "listener for connections which spawns a responder task for each."
+    port = socket.socket \
+      (
+        family = (socket.AF_INET, socket.AF_INET6)[use_ipv6],
+        type = socket.SOCK_STREAM
+      )
+    port.setblocking(False)
+    while True :
+        try :
+            port.bind \
+              (
+                (
+                    ("127.0.0.1", listen_port),
+                    ("::1", listen_port),
+                )[use_ipv6]
+              )
+        except OSError as err :
+            if err.errno != errno.EADDRINUSE :
+                raise
+            #end if
+            sys.stdout.write("Wait for port to be freed...\n")
+            await asyncio.sleep(5)
+        else :
+            sys.stdout.write("Address bound.\n")
+            break
+        #end try
+    port.listen()
+    while True :
+        await until_readable(port)
+        conn, addr = port.accept()
+        sys.stdout.write("connect from %s\n" % repr(addr))
+        conn.setblocking(False)
+        loop.create_task(responder(conn, addr))
+    #end while
+#end listener
+
+def get_args() :
+    global listen_port, step_delay, use_ipv6
+    opts, args = getopt.getopt \
+      (
+        sys.argv[1:],
+        "",
+        ["ipv=", "port=", "step="]
+      )
+    for keyword, value in opts :
+        if keyword == "--ipv" :
+            use_ipv6 = {"4" : False, "6" : True}[value]
+        elif keyword == "--port" :
+            listen_port = int(value)
+            assert 0 < listen_port < 65536
+        elif keyword == "--step" :
+            step_delay = float(value)
+            assert step_delay >= 0.0
+        #end if
+    #end for
+    if len(args) != 0 :
+        raise getopt.GetoptError("no arguments expected")
+    #end if
+#end get_args
+
+get_args()
+loop.run_until_complete(listener())

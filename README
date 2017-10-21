@@ -14,6 +14,9 @@ coroutine, while the updating of the user interface happens concurrently.
 DBussy ([GitLab](https://gitlab.com/ldo/dbussy),
 [GitHub](https://github.com/ldo/dbussy)), my Python binding for libdbus.
 
+`hailstorm_client`, `hailstorm_server` -- a demonstration of client/server
+communication over TCP/IP with multiple simultaneous connections.
+
 `life` -- a program which runs John Horton Conway’s well-known “Life”
 cellular-automata game. This version uses three separate coroutines:
 one for running the user interface in “edit” mode, where the user can
@@ -33,11 +36,12 @@ followed by achieving orbit. For added flavour, the program runs three
 launches, starting at different times and overlapping their sequences,
 to demonstrate event-loop-friendliness.
 
-The `dbus_signal_listener`, `pipes` and `rocket_launch` examples can
-work with either the `glibcoro` event loop or the standard one
-provided by `asyncio`; by default they use `glibcoro`’s `GLibEventLoop`,
-but if you define the environment variable `USE_GLIB=1`, they will
-fall back to `asyncio`’s default `BaseEventLoop`.
+The `dbus_signal_listener`, `hailstorm_client`, `hailstorm_server`,
+`pipes` and `rocket_launch` examples can work with either the
+`glibcoro` event loop or the standard one provided by `asyncio`; by
+default they use `glibcoro`’s `GLibEventLoop`, but if you define the
+environment variable `USE_GLIB=1`, they will fall back to `asyncio`’s
+default `BaseEventLoop`.
 
 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>
-2017 October 6
+2017 October 21

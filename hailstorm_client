@@ -1,0 +1,149 @@
+#!/usr/bin/python3
+#+
+# glibcoro example: hailstorm sequence client. Invoke this script
+# with one or more starting integers, and it will open a connection
+# to the accompanying hailstorm_server script for each integer,
+# send it that integer, and print out the returned “hailstorm”
+# sequence <http://en.wikipedia.org/wiki/Collatz_conjecture>.
+#
+# Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
+# what you will.
+#-
+
+import sys
+import os
+import socket
+import asyncio
+import glibcoro
+import getopt
+
+use_glib = os.getenv("USE_GLIB", "")[:1].upper() not in ("N", "0")
+sys.stdout.write("use_glib: %s\n" % use_glib)
+if use_glib :
+    glibcoro.install()
+#end if
+loop = asyncio.get_event_loop()
+assert isinstance(loop, glibcoro.GLibEventLoop) == use_glib
+
+#+
+# Useful stuff
+#-
+
+def until_readable(fd) :
+    "coroutine: can be awaited to block until there is something to read from fd."
+
+    waitfor = loop.create_future()
+
+    def can_read() :
+        loop.remove_reader(fd)
+        waitfor.set_result(None)
+    #end can_read
+
+#begin until_readable
+    loop.add_reader(fd, can_read)
+    return \
+        waitfor
+#end until_readable
+
+def until_writable(fd) :
+    "coroutine: can be awaited to block until something can be written to fd."
+
+    waitfor = loop.create_future()
+
+    def can_write() :
+        loop.remove_writer(fd)
+        waitfor.set_result(None)
+    #end can_writer
+
+#begin until_writable
+    loop.add_writer(fd, can_write)
+    return \
+        waitfor
+#end until_writable
+
+#+
+# Mainline
+#-
+
+connect_port = 2323
+use_ipv6 = False
+args = None
+
+async def requestor(index, start_n) :
+    "spawned for each argument to make a request to the server and receive" \
+    " its responses."
+    conn = socket.socket \
+      (
+        family = (socket.AF_INET, socket.AF_INET6)[use_ipv6],
+        type = socket.SOCK_STREAM
+      )
+    conn.setblocking(False)
+    try :
+        conn.connect \
+          (
+            (
+                ("127.0.0.1", connect_port),
+                ("::1", connect_port),
+            )[use_ipv6]
+          )
+    except BlockingIOError :
+        pass
+    #end try
+    await until_writable(conn)
+    conn.send(("%d\n" % start_n).encode())
+    sys.stdout.write("%d: start with %d\n" % (index, start_n))
+    response = b""
+    while True :
+        while True :
+            if b"\n" in response :
+                break
+            await until_readable(conn)
+            seg = conn.recv(80)
+            if len(seg) == 0 :
+                response = None
+                break
+            #end if
+            response += seg
+            if b"\n" in seg :
+                break
+        #end while
+        if response == None :
+            break
+        splitpos = response.index(b"\n")
+        n = response[:splitpos]
+        response = response[splitpos + 1:]
+        n = int(n.decode())
+        sys.stdout.write("%d: got %d\n" % (index, n))
+    #end while
+    conn.close()
+#end requestor
+
+def get_args() :
+    global connect_port, use_ipv6, args
+    opts, args = getopt.getopt \
+      (
+        sys.argv[1:],
+        "",
+        ["ipv=", "port="]
+      )
+    for keyword, value in opts :
+        if keyword == "--ipv" :
+            use_ipv6 = {"4" : False, "6" : True}[value]
+        elif keyword == "--port" :
+            listen_port = int(value)
+            assert 0 < listen_port < 65536
+        #end if
+    #end for
+    if len(args) == 0 :
+        raise getopt.GetoptError("nothing to do")
+    #end if
+    args = tuple(int(n) for n in args)
+#end get_args
+
+get_args()
+loop.run_until_complete \
+  (
+    asyncio.gather(*(requestor(i + 1, n) for i, n in enumerate(args)))
+  )
