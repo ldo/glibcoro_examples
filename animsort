@@ -27,7 +27,6 @@
 #-
 
 import sys
-import time
 import signal
 import colorsys
 import random
