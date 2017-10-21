@@ -181,7 +181,8 @@ except KeyboardInterrupt :
         task.cancel()
         try :
             loop.run_until_complete(task)
-        except asyncio.CancelledError :
+        except (asyncio.CancelledError, KeyboardInterrupt) :
+          # GLib seems to require catching KeyboardInterrupt here as well
             pass
         #end try
     #end for
