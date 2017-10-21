@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 #+
-# glibcoro example: hailstorm sequence generator. This process listens
+# glibcoro example: hailstone sequence generator. This process listens
 # for connections on a TCP/IP port, receives a starting positive
-# integer on each connection, and then sends back the “hailstorm”
+# integer on each connection, and then sends back the “hailstone”
 # sequence <http://en.wikipedia.org/wiki/Collatz_conjecture> starting
 # with that integer.
 #
-# The accompanying hailstorm_client script will work as a client
+# The accompanying hailstone_client script will work as a client
 # with this server.
 #
 # Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This

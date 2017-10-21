@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 #+
-# glibcoro example: hailstorm sequence client. Invoke this script
+# glibcoro example: hailstone sequence client. Invoke this script
 # with one or more starting integers, and it will open a connection
-# to the accompanying hailstorm_server script for each integer,
-# send it that integer, and print out the returned “hailstorm”
+# to the accompanying hailstone_server script for each integer,
+# send it that integer, and print out the returned “hailstone”
 # sequence <http://en.wikipedia.org/wiki/Collatz_conjecture>.
 #
 # Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
