@@ -95,6 +95,7 @@ async def requestor(index, start_n) :
     conn.send(("%d\n" % start_n).encode())
     sys.stdout.write("%d: start with %d\n" % (index, start_n))
     response = b""
+    count = 0
     while True :
         while True :
             if b"\n" in response :
@@ -115,7 +116,8 @@ async def requestor(index, start_n) :
         n = response[:splitpos]
         response = response[splitpos + 1:]
         n = int(n.decode())
-        sys.stdout.write("%d: got %d\n" % (index, n))
+        count += 1
+        sys.stdout.write("%d/%d: got %d\n" % (index, count, n))
     #end while
     conn.close()
 #end requestor
