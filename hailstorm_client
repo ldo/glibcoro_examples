@@ -89,7 +89,7 @@ async def requestor(index, start_n) :
             )[use_ipv6]
           )
     except BlockingIOError :
-        pass
+        pass # connection is made when conn becomes writable (awaited below)
     #end try
     await until_writable(conn)
     conn.send(("%d\n" % start_n).encode())
