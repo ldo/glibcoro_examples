@@ -93,7 +93,12 @@ async def responder(conn, addr) :
     while True :
         await asyncio.sleep(use_delay) # just to simulate a time-consuming task
         await until_writable(conn)
-        conn.send(("%d\n" % n).encode())
+        try :
+            conn.send(("%d\n" % n).encode())
+        except BrokenPipeError :
+            # client has gone
+            break
+        #end try
         if n == 1 :
             break
         if n % 2 != 0 :
@@ -168,4 +173,17 @@ def get_args() :
 #end get_args
 
 get_args()
-loop.run_until_complete(listener())
+try :
+    loop.run_until_complete(listener())
+except KeyboardInterrupt :
+    # is there an easier way of cleaning up than this?
+    for task in asyncio.Task.all_tasks(loop) :
+        task.cancel()
+        try :
+            loop.run_until_complete(task)
+        except asyncio.CancelledError :
+            pass
+        #end try
+    #end for
+    sys.stdout.write("\n") # avoid terminal prompt appearing after ^C
+#end try
