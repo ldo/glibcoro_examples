@@ -26,7 +26,6 @@ if use_glib :
 loop = asyncio.get_event_loop()
 assert isinstance(loop, glibcoro.GLibEventLoop) == use_glib
 
-loop = asyncio.get_event_loop()
 start_time = loop.time()
 
 def log_msg(msg) :
