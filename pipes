@@ -3,8 +3,8 @@
 # glibcoro example: nondeterministic interprocess communication
 # via pipes.
 #
-# Copyright 2017 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
-# script is licensed CC0
+# Copyright 2017-2018 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# This script is licensed CC0
 # <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
 # what you will.
 #-
@@ -29,6 +29,10 @@ assert isinstance(loop, glibcoro.GLibEventLoop) == use_glib
 #-
 
 def fd_future(fd, timeout = None) :
+    "creates a Future that can be awaited to determine when the specified" \
+    " file descriptor has become readable. The result from the Future" \
+    " will become True when there is something to read, False if the" \
+    " (optional) timeout has elapsed."
 
     fute = loop.create_future()
     timeout_pending = None
@@ -63,11 +67,15 @@ def fd_future(fd, timeout = None) :
 # Mainline
 #-
 
+# feel free to change these parameters
 nr_children = 5
 max_wait = 20 # seconds
 max_delay = 1.5 * max_wait # let children sometimes wait too long
 
 class ImTheChild(Exception) :
+    "used to abort the child-spawning loop in the child process." \
+    " to_parent is the pipe fd for sending messages back to the." \
+    " parent."
 
     def __init__(self, to_parent) :
         self.args = ("I am a child process!",)
@@ -105,6 +113,7 @@ try :
           )
     #end for
 except ImTheChild as excp :
+    # parent continues with loop, child doesn’t
     children = None
     to_parent = excp.to_parent
 #end try
