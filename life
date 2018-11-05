@@ -463,6 +463,7 @@ loop = asyncio.get_event_loop()
 main_window = None
 prompt_area = None
 info_area = None
+cur_main_task = None # keep a reference to currently-running task
 
 state = None
 state_display = None
@@ -496,6 +497,7 @@ def set_info(msg) :
 async def edit_mode() :
     "lets the user make changes to the board layout, run the" \
     " generations, or quit the program."
+    global cur_main_task
     state_display.running = False
     state_display.inval_all()
     set_prompt("Editing: SPACE toggle, UP/DOWN/LEFT/RIGHT move, TAB step, RETURN run, Q quit")
@@ -527,7 +529,7 @@ async def edit_mode() :
             state_display.recompute_scroll_bounds()
             state_display.inval_all()
         elif key == Gdk.KEY_Return :
-            loop.create_task(run_mode())
+            cur_main_task = loop.create_task(run_mode())
             break
         elif key == Gdk.KEY_q :
             loop.stop()
@@ -538,6 +540,7 @@ async def edit_mode() :
 
 async def run_mode() :
     "lets the user scroll around while running the generations."
+    global cur_main_task
     generate_task = loop.create_task(generate())
     state_display.running = True
     state_display.inval_all()
@@ -557,7 +560,7 @@ async def run_mode() :
             state_display.home()
         elif key == Gdk.KEY_Escape :
             generate_task.cancel()
-            loop.create_task(edit_mode())
+            cur_main_task = loop.create_task(edit_mode())
             break
         #end if
     #end while
@@ -649,5 +652,5 @@ def getcmd() :
 
 getcmd()
 setup_main_window()
-loop.create_task(edit_mode())
+cur_main_task = loop.create_task(edit_mode())
 loop.run_forever()

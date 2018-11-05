@@ -142,12 +142,20 @@ async def listener() :
             break
         #end try
     port.listen()
+    cur_tasks = [] # keep references to currently-running tasks
     while True :
+        new_tasks = []
+        for task in cur_tasks :
+            if not task.done() :
+                new_tasks.append(task)
+            #end if
+        #end for
+        cur_tasks = new_tasks
         await until_readable(port)
         conn, addr = port.accept()
         sys.stdout.write("connect from %s\n" % repr(addr))
         conn.setblocking(False)
-        loop.create_task(responder(conn, addr))
+        cur_tasks.append(loop.create_task(responder(conn, addr)))
     #end while
 #end listener
 

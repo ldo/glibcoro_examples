@@ -50,16 +50,17 @@ async def launch_rocket(name) :
 #end launch_rocket
 
 async def mission_control() :
+    launches = [] # need to keep references to tasks
     log_msg("simulation starts")
-    loop.create_task(launch_rocket("alpha"))
+    launches.append(loop.create_task(launch_rocket("alpha")))
     await asyncio.sleep(3)
-    loop.create_task(launch_rocket("beta"))
+    launches.append(loop.create_task(launch_rocket("beta")))
     await asyncio.sleep(3)
-    loop.create_task(launch_rocket("gamma"))
+    launches.append(loop.create_task(launch_rocket("gamma")))
     await asyncio.sleep(25 - loop.time() + start_time)
     loop.stop()
     log_msg("simulation stops")
 #end mission_control
 
-loop.create_task(mission_control())
+main_task = loop.create_task(mission_control())
 loop.run_forever()

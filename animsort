@@ -441,7 +441,7 @@ compare_count_label.set_text("")
 swap_count_label.set_text("")
 recompute_ordered()
 main_window.show()
-loop.create_task(sort_task())
+main_task = loop.create_task(sort_task()) # keep a reference while it runs
 #loop.add_signal_handler(signal.SIGINT, stop, None)
   # unnecessary to allow interruption with CTRL/C
 loop.run_forever()
