@@ -40,8 +40,8 @@ The `dbus_signal_listener`, `hailstone_client`, `hailstone_server`,
 `pipes` and `rocket_launch` examples can work with either the
 `glibcoro` event loop or the standard one provided by `asyncio`; by
 default they use `glibcoro`’s `GLibEventLoop`, but if you define the
-environment variable `USE_GLIB=1`, they will fall back to `asyncio`’s
+environment variable `USE_GLIB=0`, they will fall back to `asyncio`’s
 default `BaseEventLoop`.
 
 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>
-2017 October 21
+2018 December 29
