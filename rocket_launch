@@ -23,10 +23,11 @@ sys.stdout.write("use_glib: %s\n" % use_glib)
 if use_glib :
     glibcoro.install()
 #end if
-loop = asyncio.get_event_loop()
-assert isinstance(loop, glibcoro.GLibEventLoop) == use_glib
+assert isinstance(asyncio.get_event_loop(), glibcoro.GLibEventLoop) == use_glib
 
 # Note that there is nothing GLib-specific below this point.
+
+loop = asyncio.get_event_loop()
 
 start_time = loop.time()
 
