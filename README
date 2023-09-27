@@ -1,6 +1,6 @@
 This repo contains examples of the use of **glibcoro**
 ([GitLab](https://gitlab.com/ldo/glibcoro),
-[GitHub](https://github.com/ldo/glibcoro)), my module which makes the
+[BitBucket](https://bitbucket.org/ldo17/glibcoro)), my module which makes the
 GLib/GTK+ event loop compatible with Python’s
 [`asyncio`](https://docs.python.org/3/library/asyncio.html) framework.
 
@@ -12,7 +12,7 @@ coroutine, while the updating of the user interface happens concurrently.
 `dbus_signal_listener` -- a listener for signals on
 [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/). Also requires
 DBussy ([GitLab](https://gitlab.com/ldo/dbussy),
-[GitHub](https://github.com/ldo/dbussy)), my Python binding for libdbus.
+[BitBucket](https://bitbucket.org/ldo17/dbussy)), my Python binding for libdbus.
 
 `hailstone_client`, `hailstone_server` -- a demonstration of client/server
 communication over TCP/IP with multiple simultaneous connections.
@@ -44,4 +44,4 @@ environment variable `USE_GLIB=0`, they will fall back to `asyncio`’s
 default `BaseEventLoop`.
 
 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>
-2018 December 29
+2023 September 27
